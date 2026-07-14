@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRAMMAR ARCADE — English A1 Practice Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --shell:#E7E1D2;
+    --shell-dark:#CFC8B5;
+    --shell-shadow:#9c9482;
+    --screen-bg:#132018;
+    --screen-bezel:#0b140e;
+    --phosphor:#8FE3B0;
+    --phosphor-dim:#4f8a68;
+    --ink:#26241d;
+    --ink-soft:#5b5647;
+    --coral:#E1573C;
+    --amber:#E8A33D;
+    --sky:#4C8FE0;
+    --violet:#8B6FD1;
+    --leaf:#5FA777;
+    --danger:#d64545;
+    --radius:22px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 20% -10%, #f4efe2 0%, transparent 55%),
+      radial-gradient(circle at 100% 110%, #ded5bd 0%, transparent 50%),
+      var(--shell);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  /* ---------- HEADER / CONSOLE TOP ---------- */
+  .console-top{
+    background:linear-gradient(180deg,#efe9db,#ddd5c1);
+    border-radius:28px;
+    padding:18px 22px;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.6),
+      inset 0 -6px 12px rgba(0,0,0,.06),
+      0 14px 30px -14px rgba(60,50,30,.35);
+    display:flex;align-items:center;gap:16px;
+    border:1px solid #cfc6ae;
+  }
+  .power-led{
+    width:14px;height:14px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #baffd4, var(--leaf) 60%, #2c6b45 100%);
+    box-shadow:0 0 10px 2px rgba(95,167,119,.8);
+    animation:blink 2.6s ease-in-out infinite;
+    flex-shrink:0;
+  }
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.45;}}
+  .brand{display:flex;flex-direction:column;line-height:1.05;}
+  .brand b{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:22px;letter-spacing:.5px;
+  }
+  .brand span{font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-soft);letter-spacing:1.5px;text-transform:uppercase;}
+  .top-stats{margin-left:auto;display:flex;gap:10px;}
+  .stat-pill{
+    background:var(--screen-bg);color:var(--phosphor);
+    font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
+    padding:8px 14px;border-radius:12px;
+    box-shadow:inset 0 0 0 2px #0000004d, 0 3px 0 rgba(0,0,0,.15);
+    display:flex;flex-direction:column;align-items:center;gap:2px;min-width:70px;
+  }
+  .stat-pill small{color:var(--phosphor-dim);font-size:8px;letter-spacing:1px;text-transform:uppercase;}
+
+  /* ---------- SLOT / CRT SCREEN (only visible in game view) ---------- */
+  #gameStage{display:none;margin-top:22px;}
+  .console-body{
+    background:linear-gradient(180deg,#ece5d6,#d9d0ba);
+    border-radius:30px;
+    padding:26px;
+    border:1px solid #cec5ad;
+    box-shadow:0 20px 40px -20px rgba(50,40,20,.4), inset 0 2px 0 rgba(255,255,255,.5);
+    position:relative;
+  }
+  .screen-bezel{
+    background:var(--screen-bezel);
+    border-radius:20px;
+    padding:14px;
+    box-shadow:inset 0 0 0 3px #000, inset 0 0 40px rgba(0,0,0,.6);
+  }
+  .screen{
+    background:radial-gradient(ellipse at 50% 0%, #1c3324 0%, var(--screen-bg) 70%);
+    border-radius:12px;
+    min-height:380px;
+    padding:26px 28px 22px;
+    color:var(--phosphor);
+    font-family:'Space Mono',monospace;
+    position:relative;
+    overflow:hidden;
+  }
+  .screen::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0px, rgba(0,0,0,.18) 1px, transparent 2px, transparent 3px);
+    mix-blend-mode:multiply;opacity:.5;
+  }
+  .screen::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    box-shadow:inset 0 0 60px rgba(0,0,0,.55);
+  }
+  .screen-glitch{animation:glitch .3s linear;}
+  @keyframes glitch{
+    0%{transform:translateX(0);}20%{transform:translateX(-4px);}40%{transform:translateX(4px);}
+    60%{transform:translateX(-2px);}80%{transform:translateX(2px);}100%{transform:translateX(0);}
+  }
+  .screen-flash{animation:flash .4s ease-out;}
+  @keyframes flash{0%{filter:brightness(1.7);}100%{filter:brightness(1);}}
+
+  .hud{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:1px;position:relative;z-index:2;}
+  .hud .lesson-tag{color:var(--phosphor);opacity:.85;text-transform:uppercase;}
+  .dots{display:flex;gap:6px;margin:14px 0 20px;position:relative;z-index:2;}
+  .dot{width:9px;height:9px;border-radius:50%;background:rgba(143,227,176,.18);transition:.25s;}
+  .dot.done{background:var(--phosphor);box-shadow:0 0 8px var(--phosphor);}
+  .dot.current{background:var(--amber);box-shadow:0 0 8px var(--amber);}
+
+  .question-box{position:relative;z-index:2;min-height:170px;display:flex;flex-direction:column;justify-content:center;}
+  .q-eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--phosphor-dim);margin-bottom:10px;}
+  .q-text{
+    font-family:'Space Grotesk',sans-serif;color:#eafff0;
+    font-size:22px;line-height:1.5;font-weight:600;margin-bottom:22px;
+  }
+  .q-text b{color:var(--amber);font-weight:700;border-bottom:2px dashed rgba(232,163,61,.5);padding-bottom:1px;}
+
+  .fill-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .fill-input{
+    background:#0c1a12;border:2px solid var(--phosphor-dim);
+    color:var(--phosphor);font-family:'Space Mono',monospace;font-size:16px;font-weight:700;
+    padding:12px 14px;border-radius:10px;flex:1;min-width:180px;outline:none;
+  }
+  .fill-input:focus{border-color:var(--phosphor);box-shadow:0 0 0 3px rgba(143,227,176,.18);}
+
+  .options-grid{display:grid;gap:10px;}
+  .opt-btn{
+    text-align:left;
+    background:rgba(143,227,176,.06);
+    border:2px solid rgba(143,227,176,.28);
+    color:#eafff0;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;
+    padding:13px 16px;border-radius:12px;cursor:pointer;transition:.15s;
+  }
+  .opt-btn:hover{background:rgba(143,227,176,.14);border-color:var(--phosphor);}
+  .opt-btn.correct{background:rgba(95,167,119,.35);border-color:var(--leaf);}
+  .opt-btn.wrong{background:rgba(214,69,69,.3);border-color:var(--danger);}
+  .opt-btn:disabled{cursor:default;}
+
+  .tf-row{display:flex;gap:14px;}
+  .tf-btn{
+    flex:1;padding:16px;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;
+    cursor:pointer;border:2px solid;transition:.15s;letter-spacing:.5px;
+  }
+  .tf-btn.true-btn{background:rgba(95,167,119,.12);border-color:var(--leaf);color:#c9ffdd;}
+  .tf-btn.false-btn{background:rgba(214,69,69,.12);border-color:var(--danger);color:#ffd6d6;}
+  .tf-btn:hover{filter:brightness(1.25);}
+  .tf-btn.correct{background:rgba(95,167,119,.4);}
+  .tf-btn.wrong{background:rgba(214,69,69,.4);}
+  .tf-btn:disabled{cursor:default;}
+
+  .feedback{
+    margin-top:16px;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;
+    min-height:24px;position:relative;z-index:2;
+  }
+  .feedback.good{color:#a6ffcb;}
+  .feedback.bad{color:#ffb3b3;}
+
+  .btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;position:relative;z-index:2;}
+  .arcade-btn{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;letter-spacing:.5px;
+    border:none;padding:12px 22px;border-radius:30px;cursor:pointer;transition:.15s;color:#fff;
+    box-shadow:0 4px 0 rgba(0,0,0,.25);
+  }
+  .arcade-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.25);}
+  .arcade-btn.primary{background:var(--coral);}
+  .arcade-btn.ghost{background:transparent;color:var(--phosphor);box-shadow:none;border:2px solid var(--phosphor-dim);}
+  .arcade-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;}
+
+  /* ---------- MODE PICKER (console buttons) ---------- */
+  .mode-picker{position:relative;z-index:2;display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
+  .mode-btn{
+    flex:1;min-width:150px;
+    background:rgba(255,255,255,.04);
+    border:2px solid rgba(143,227,176,.3);
+    border-radius:16px;padding:18px 16px;cursor:pointer;color:#eafff0;
+    font-family:'Space Grotesk',sans-serif;text-align:left;transition:.15s;
+  }
+  .mode-btn:hover{border-color:var(--phosphor);background:rgba(143,227,176,.08);transform:translateY(-2px);}
+  .mode-btn .dot-lamp{width:12px;height:12px;border-radius:50%;margin-bottom:10px;}
+  .mode-btn .m-title{font-weight:700;font-size:15px;}
+  .mode-btn .m-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--phosphor-dim);margin-top:4px;text-transform:uppercase;letter-spacing:1px;}
+  .mode-btn.locked{opacity:.3;cursor:not-allowed;}
+  .mode-btn.locked:hover{transform:none;border-color:rgba(143,227,176,.3);}
+
+  /* ---------- HOME / CARTRIDGE GRID ---------- */
+  #home{margin-top:26px;}
+  .home-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:22px;}
+  .home-head h1{
+    font-family:'Space Grotesk',sans-serif;font-size:clamp(28px,4vw,42px);
+    margin:0;line-height:1.05;font-weight:700;
+  }
+  .home-head p{margin:8px 0 0;color:var(--ink-soft);font-size:15px;max-width:480px;}
+  .best-badge{
+    font-family:'Space Mono',monospace;font-size:12px;background:var(--ink);color:var(--phosphor);
+    padding:8px 14px;border-radius:10px;
+  }
+
+  .cart-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    gap:16px;
+  }
+  .cart{
+    position:relative;
+    border-radius:16px 16px 8px 8px;
+    padding:0;
+    cursor:pointer;
+    border:none;
+    background:none;
+    text-align:left;
+    font:inherit;
+    color:inherit;
+    transition:transform .18s ease;
+  }
+  .cart:hover{transform:translateY(-5px);}
+  .cart-top{
+    height:10px;border-radius:16px 16px 0 0;
+  }
+  .cart-body{
+    background:#fbf8f1;
+    border:1px solid rgba(0,0,0,.06);
+    border-top:none;
+    padding:16px 16px 14px;
+    border-radius:0 0 8px 8px;
+    box-shadow:0 10px 18px -12px rgba(40,30,10,.3);
+  }
+  .cart-code{
+    font-family:'Space Mono',monospace;font-size:11px;font-weight:700;
+    letter-spacing:1px;padding:3px 8px;border-radius:6px;display:inline-block;color:#fff;margin-bottom:10px;
+  }
+  .cart-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16.5px;line-height:1.2;margin-bottom:5px;}
+  .cart-tag{font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;}
+  .cart-progress{height:5px;background:#eae4d4;border-radius:3px;overflow:hidden;}
+  .cart-progress i{display:block;height:100%;}
+  .cart-notch{
+    position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+    width:34px;height:12px;background:var(--shell-dark);border-radius:0 0 8px 8px;
+  }
+
+  /* ---------- END SCREEN ---------- */
+  .end-screen{position:relative;z-index:2;text-align:center;padding:20px 0;}
+  .end-score{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:700;color:#eafff0;margin:6px 0;}
+  .end-sub{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;color:var(--phosphor-dim);text-transform:uppercase;}
+  .medal{font-size:44px;margin-bottom:6px;}
+
+  footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:36px;font-family:'Space Mono',monospace;}
+
+  @media (max-width:640px){
+    .brand b{font-size:17px;}
+    .top-stats{gap:6px;}
+    .stat-pill{min-width:56px;padding:7px 9px;}
+    .q-text{font-size:18px;}
+    .screen{padding:20px 16px 18px;min-height:340px;}
+  }
+
+  ::selection{background:var(--amber);color:#20180a;}
+  :focus-visible{outline:3px solid var(--sky);outline-offset:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="console-top">
+    <div class="power-led"></div>
+    <div class="brand">
+      <b>GRAMMAR ARCADE</b>
+      <span>English A1 · Practice Console</span>
+    </div>
+    <div class="top-stats">
+      <div class="stat-pill"><span id="statScore">0</span><small>Score</small></div>
+      <div class="stat-pill"><span id="statStreak">0</span><small>Streak</small></div>
+      <div class="stat-pill"><span id="statCleared">0/18</span><small>Cleared</small></div>
+    </div>
+  </div>
+
+  <div id="home">
+    <div class="home-head">
+      <div>
+        <h1>Insert a cartridge<br>to start practicing.</h1>
+        <p>18 grammar cartridges built from your workbook. Pick one, choose a game mode, and play — fully in English.</p>
+      </div>
+      <div class="best-badge" id="totalBadge">TOTAL SCORE: 0</div>
+    </div>
+    <div class="cart-grid" id="cartGrid"></div>
+  </div>
+
+  <div id="gameStage">
+    <div class="console-body">
+      <div class="screen-bezel">
+        <div class="screen" id="screen">
+          <div class="hud">
+            <span class="lesson-tag" id="hudLesson">L01 · TO BE</span>
+            <span id="hudMode">FILL THE GAP</span>
+          </div>
+
+          <div id="modePickerView">
+            <div class="q-eyebrow" style="margin-top:6px;">SELECT GAME MODE</div>
+            <div class="q-text" id="pickerTitle" style="font-size:20px;">Choose how to play this cartridge</div>
+            <div class="mode-picker" id="modePicker"></div>
+          </div>
+
+          <div id="playView" style="display:none;">
+            <div class="dots" id="dots"></div>
+            <div class="question-box">
+              <div class="q-eyebrow" id="qEyebrow">QUESTION 1</div>
+              <div class="q-text" id="qText"></div>
+              <div id="answerArea"></div>
+              <div class="feedback" id="feedback"></div>
+            </div>
+            <div class="btn-row">
+              <button class="arcade-btn ghost" id="backBtn">← Cartridges</button>
+              <button class="arcade-btn primary" id="nextBtn" disabled>Check answer</button>
+            </div>
+          </div>
+
+          <div id="endView" style="display:none;">
+            <div class="end-screen">
+              <div class="medal" id="medal">🏆</div>
+              <div class="end-sub">CARTRIDGE COMPLETE</div>
+              <div class="end-score" id="endScore">0 / 0</div>
+              <div class="end-sub" id="endMsg">Nice work</div>
+              <div class="btn-row" style="justify-content:center;gap:14px;margin-top:22px;">
+                <button class="arcade-btn ghost" id="endBackBtn">← Cartridges</button>
+                <button class="arcade-btn primary" id="retryBtn">Play again</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>GRAMMAR ARCADE — built from your A1 revision workbook · progress saved on this device</footer>
+</div>
+
+<script>
+/* ============================= DATA ============================= */
+const COLORS = ['#E1573C','#4C8FE0','#E8A33D','#8B6FD1','#5FA777','#d6558f'];
+
+const LESSONS = [
+{code:'L01',title:'The Verb TO BE',tag:'am / is / are',
+ fill:[
+  ["She ___ a teacher.","is"],["I ___ from Morocco.","am"],["They ___ happy.","are"],
+  ["We ___ students.","are"],["He ___ tall.","is"],["It ___ cold today.","is"]],
+ mcq:[
+  ["Are you a student?",["Yes, I am.","Yes, I do.","Yes, I be."],0],
+  ["Is she happy? (No)",["No, she isn't.","No, she doesn't.","No, she not."],0],
+  ["Are they at home? (Yes)",["Yes, they are.","Yes, they do.","Yes, they is."],0],
+  ["Is it raining? (No)",["No, it isn't.","No, it doesn't.","No, it not raining."],0],
+  ["Am I right? (Yes)",["Yes, you are.","Yes, I am.","Yes, you do."],0],
+  ["Are we late? (No)",["No, we aren't.","No, we don't.","No, we not."],0]],
+ errors:[
+  ["He are my brother.",false,"He is my brother."],
+  ["I is a student.",false,"I am a student."],
+  ["They is from London.",false,"They are from London."],
+  ["We am tired.",false,"We are tired."],
+  ["She is a nurse.",true,""],
+  ["It isn't cold today.",true,""]]},
+
+{code:'L02',title:'The Verb TO HAVE',tag:'have / has',
+ fill:[
+  ["She ___ a dog.","has"],["They ___ two cars.","have"],["I ___ a headache.","have"],
+  ["He ___ brown eyes.","has"],["We ___ a big house.","have"],["It ___ a long tail.","has"]],
+ mcq:[
+  ["She ___ a new phone.",["have","has","is have"],1],
+  ["___ they have a car?",["Does","Is","Do"],2],
+  ["He ___ a headache today.",["have","don't have","has"],2],
+  ["I ___ any money.",["don't have","hasn't","doesn't have"],0],
+  ["___ she have a sister?",["Do","Does","Have"],1],
+  ["Yes, they ___.",["does","have","do"],2]],
+ errors:null},
+
+{code:'L03',title:'Articles',tag:'a / an / the',
+ fill:[
+  ["___ apple","an"],["___ bus","a"],["___ hour","an"],
+  ["___ university","a"],["___ orange","an"],["___ honest man","an"]],
+ mcq:[
+  ["She is ___ actress.",["a","an","the"],1],
+  ["I love ___ music.",["a","the","— (no article)"],2],
+  ["___ Amazon is a long river.",["A","An","The"],2],
+  ["He lives on ___ second floor.",["a","the","—"],1],
+  ["I eat ___ egg every morning.",["a","an","the"],1],
+  ["We study ___ history.",["the","a","— (no article)"],2]],
+ errors:[
+  ["She has an cat and a umbrella.",false,"She has a cat and an umbrella."],
+  ["I go to the school every day.",false,"I go to school every day."],
+  ["He is a honest person.",false,"He is an honest person."],
+  ["The love is beautiful.",false,"Love is beautiful."],
+  ["The sun is a star.",true,""],
+  ["I had dinner at 8pm.",true,""]]},
+
+{code:'L04',title:'Possessive Adjectives',tag:'my / your / his / her',
+ fill:[
+  ["This is Tom. ___ car is red.","His"],["Sara has a cat. ___ name is Mimi.","Its"],
+  ["I have a brother. ___ name is Ali.","His"],["We live in a flat. ___ flat is small but cosy.","Our"],
+  ["They have children. ___ children go to school.","Their"],["You have a nice bag. ___ bag is blue.","Your"]],
+ mcq:[
+  ["She loves ___ job.",["his","her","its"],1],
+  ["We forgot ___ umbrellas.",["their","our","my"],1],
+  ["The cat washed ___ paws.",["her","its","his"],1],
+  ["They did ___ homework.",["their","our","your"],0],
+  ["Can you tell me ___ name?",["my","his","your"],2],
+  ["He lost ___ keys.",["her","his","their"],1]],
+ errors:[
+  ["She forgot her's bag at home.",false,"She forgot her bag at home."],
+  ["My car is red. It's colour is nice.",false,"My car is red. Its colour is nice."],
+  ["They love their's children.",false,"They love their children."],
+  ["He is proud of him job.",false,"He is proud of his job."],
+  ["We enjoyed our holiday.",true,""],
+  ["The cat licked its paw.",true,""]]},
+
+{code:'L05',title:'Present Simple',tag:'habits & routines',
+ fill:[
+  ["She ___ (go) to school by bus.","goes"],["They ___ (play) football on Saturdays.","play"],
+  ["He ___ (study) English every day.","studies"],["I ___ (not like) spicy food.","don't like"],
+  ["We ___ (have) lunch at noon.","have"],["She ___ (not watch) TV in the morning.","doesn't watch"]],
+ mcq:[
+  ["He ___ to school every day.",["go","goes","going"],1],
+  ["___ she speak English?",["Do","Is","Does"],2],
+  ["They ___ meat.",["don't eat","doesn't eat","not eat"],0],
+  ["The sun ___ in the east.",["rise","rises","is rise"],1],
+  ["I usually ___ at 7am.",["wakes up","wake up","waking up"],1],
+  ["No, she ___.",["don't","doesn't","isn't"],1]],
+ errors:[
+  ["She don't like coffee.",false,"She doesn't like coffee."],
+  ["Do he play tennis?",false,"Does he play tennis?"],
+  ["He go to work by car.",false,"He goes to work by car."],
+  ["Does they have a cat?",false,"Do they have a cat?"],
+  ["I work in an office.",true,""],
+  ["She studies English every day.",true,""]]},
+
+{code:'L06',title:'Present Continuous',tag:'happening now',
+ fill:[
+  ["run","running"],["make","making"],["sit","sitting"],
+  ["study","studying"],["swim","swimming"],["write","writing"]],
+ mcq:[
+  ["She ___ (read) a book right now.",["reads","is reading","read"],1],
+  ["He ___ (go) to work every day.",["is going","goes","going"],1],
+  ["Listen! The baby ___ (cry).",["cries","cry","is crying"],2],
+  ["Water ___ (boil) at 100°C.",["is boiling","boils","boiling"],1],
+  ["They ___ (not / watch) TV now.",["don't watch","aren't watching","not watching"],1],
+  ["I ___ (study) for my exam this week.",["study","am studying","studies"],1]],
+ errors:[
+  ["She is cook dinner right now.",false,"She is cooking dinner right now."],
+  ["I am not knowing the answer.",false,"I don't know the answer."],
+  ["Is they playing football?",false,"Are they playing football?"],
+  ["He are studying at the moment.",false,"He is studying at the moment."],
+  ["We are watching a film now.",true,""],
+  ["The cat is running away.",true,""]]},
+
+{code:'L07',title:'There is / There are',tag:'what exists',
+ fill:[
+  ["___ a park near my house.","There is"],["___ two cats in the garden.","There are"],
+  ["___ a letter for you on the table.","There is"],["___ some students in the classroom.","There are"],
+  ["___ a good restaurant here.","There is"],["___ twelve months in a year.","There are"]],
+ mcq:[
+  ["___ a dog in the garden.",["There are","There is","Is there"],1],
+  ["___ any apples left?",["Is there","Are there","There are"],1],
+  ["There ___ a cinema in my town.",["are","isn't","aren't"],1],
+  ["There are ___ students in the hall.",["much","a","many"],2],
+  ["Is there a bank? — Yes, ___.",["there are","there is","it is"],1],
+  ["There ___ any chairs in the room.",["isn't","aren't","is"],1]],
+ errors:null},
+
+{code:'L08',title:'Prepositions of Place',tag:'in / on / under / next to',
+ fill:[
+  ["The keys are ___ the table.","on"],["The supermarket is ___ the bank.","next to"],
+  ["The cat is sleeping ___ the sofa.","under"],["The children are playing ___ the school.","in front of"],
+  ["The car is parked ___ the house.","behind"],["My phone is ___ my bag.","in"]],
+ mcq:[
+  ["The milk is ___ the fridge.",["on","in","behind"],1],
+  ["The picture is ___ the sofa.",["above","under","between"],0],
+  ["She is standing ___ the door.",["in front of","in","at between"],0],
+  ["The park is ___ the school and the hospital.",["opposite","between","behind"],1],
+  ["The cat is sleeping ___ the bed.",["on","above","in front of"],0],
+  ["The pharmacy is ___ the supermarket.",["next to","in","above"],0]],
+ errors:[
+  ["She lives in front the school.",false,"She lives in front of the school."],
+  ["The spoon is in the table.",false,"The spoon is on the table."],
+  ["He is standing behind of me.",false,"He is standing behind me."],
+  ["The café is opposite to the station.",false,"The café is opposite the station."],
+  ["The picture is on the wall.",true,""],
+  ["The shop is opposite the station.",true,""]]},
+
+{code:'L09',title:'Prepositions of Time',tag:'at / on / in / since',
+ fill:[
+  ["She was born ___ 1998.","in"],["The meeting is ___ Monday.","on"],
+  ["I wake up ___ 7 o'clock.","at"],["We go to the beach ___ summer.","in"],
+  ["He calls me ___ the evening.","in"],["The party is ___ 15th August.","on"]],
+ mcq:[
+  ["I go to the gym ___ Tuesday.",["in","at","on"],2],
+  ["She studies English ___ the afternoon.",["at","in","on"],1],
+  ["They have been friends ___ 2015.",["for","since","during"],1],
+  ["He worked here ___ six months.",["since","at","for"],2],
+  ["The birds sing ___ the morning.",["at","in","on"],1],
+  ["I'll call you ___ noon.",["in","at","on"],1]],
+ errors:[
+  ["The exam is in Monday.",false,"The exam is on Monday."],
+  ["He arrived at 25th June.",false,"He arrived on 25th June."],
+  ["I was born in the morning.",true,""],
+  ["She sleeps at night.",true,""],
+  ["We met during the summer.",true,""],
+  ["I'll see you next Monday.",true,""]]},
+
+{code:'L10',title:'Qualifying Adjectives',tag:'describing things',
+ fill:[
+  ["I haven't eaten. I'm very ___.","hungry"],["The weather is ___ today. Put on a coat!","cold"],
+  ["She is always smiling and kind. She's so ___.","friendly"],["I worked 12 hours today. I'm ___.","tired"],
+  ["That ring costs £5,000! It's so ___.","expensive"],["What a ___ sunset! I love it.","beautiful"]],
+ mcq:[
+  ["She sings ___.",["beautiful","beautifully","more beautiful"],1],
+  ["He is a ___ driver.",["carefully","careful","care"],1],
+  ["The food smells ___.",["wonderfully","wonderful","more wonderful"],1],
+  ["She feels ___ today.",["good","well","both are possible"],2],
+  ["He runs ___.",["fast","fastly","faster"],0],
+  ["It's a ___ film.",["boringly","boring","bored"],1]],
+ errors:[
+  ["She has hairs longs.",false,"She has long hair."],
+  ["He is a man tall and handsome.",false,"He is a tall and handsome man."],
+  ["It was a film bored.",false,"It was a boring film."],
+  ["He looks tiredly after the race.",false,"He looks tired after the race."],
+  ["The children are happy today.",true,""],
+  ["She wore a big red dress.",true,""]]},
+
+{code:'L11',title:'WH- Questions',tag:'what / who / where / why',
+ fill:[
+  ["___ do you live? — In Casablanca.","Where"],["___ is she? — She's my sister.","Who"],
+  ["___ is the party? — On Saturday.","When"],["___ are you late? — Because the bus was delayed.","Why"],
+  ["___ is your job? — I'm a teacher.","What"],["___ are you? — I'm fine, thanks.","How"]],
+ mcq:[
+  ["___ bag is this? It's mine.",["Who","Whose","Which"],1],
+  ["___ far is the station?",["How","What","Where"],0],
+  ["___ bus goes to the centre?",["Who","Which","What"],1],
+  ["___ often do you go to the gym?",["What","How","When"],1],
+  ["___ did you buy this? — At the market.",["Who","What","Where"],2],
+  ["___ broke the window?",["Who","What","Whose"],0]],
+ errors:[
+  ["Where she does live?",false,"Where does she live?"],
+  ["How many money do you have?",false,"How much money do you have?"],
+  ["Why you are crying?",false,"Why are you crying?"],
+  ["Who did break the glass?",false,"Who broke the glass?"],
+  ["What time does the film start?",true,""],
+  ["How many brothers do you have?",true,""]]},
+
+{code:'L12',title:'This / That / These / Those',tag:'near & far',
+ fill:[
+  ["___ (near) book on my desk is mine.","This"],["___ (far) mountains over there are beautiful.","Those"],
+  ["___ (near) are my new shoes.","These"],["___ (far) man at the door is my uncle.","That"],
+  ["___ (near) students here are very hard-working.","These"],["What is ___ (far) thing over there?","that"]],
+ mcq:[
+  ["___ is my teacher over there.",["This","These","That"],2],
+  ["___ are my books on the desk here.",["Those","These","That"],1],
+  ["How much is ___ coat in the window?",["those","these","that"],2],
+  ["___ students sitting near you — are they your friends?",["Those","These","This"],1],
+  ["'Hello, ___ is John.'",["that","this","it"],1],
+  ["___ days, technology changes fast.",["That","This","These"],2]],
+ errors:[
+  ["These book is very interesting.",false,"This book is very interesting."],
+  ["Those is my car over there.",false,"That is my car over there."],
+  ["This are my keys.",false,"These are my keys."],
+  ["Those student near me is very quiet.",false,"That student near me is very quiet."],
+  ["Those shoes are too small.",true,""],
+  ["Hello, this is Sara speaking.",true,""]]},
+
+{code:'L13',title:'Simple Quantifiers',tag:'some / any / much / many',
+ fill:[
+  ["I'd like ___ coffee, please.","some"],["Is there ___ milk left?","any"],
+  ["She doesn't have ___ money.","any"],["Can I have ___ water?","some"],
+  ["There are ___ books on the table.","some"],["He didn't eat ___ breakfast.","any"]],
+ mcq:[
+  ["I don't have ___ money.",["some","much","many"],1],
+  ["There are ___ students in the library.",["a little","much","a lot of"],2],
+  ["Would you like ___ tea?",["any","some","many"],1],
+  ["He has ___ free time this week.",["a few","many","a little"],2],
+  ["Are there ___ chairs left?",["some","any","much"],1],
+  ["I know ___ people here.",["a little","a few","much"],1]],
+ errors:[
+  ["She doesn't have some friends.",false,"She doesn't have any friends."],
+  ["How many water do you drink a day?",false,"How much water do you drink a day?"],
+  ["I have a little books on my shelf.",false,"I have a few books on my shelf."],
+  ["There aren't much students today.",false,"There aren't many students today."],
+  ["Would you like some help?",true,""],
+  ["There are a lot of books here.",true,""]]},
+
+{code:'L14',title:'Plurals',tag:'regular & irregular',
+ fill:[
+  ["child","children"],["city","cities"],["leaf","leaves"],
+  ["woman","women"],["watch","watches"],["potato","potatoes"]],
+ mcq:[
+  ["The ___ are playing in the garden.",["childs","children","childrens"],1],
+  ["I brush my ___ twice a day.",["tooths","teethes","teeth"],2],
+  ["She has two ___.",["photos","photoes","photoss"],0],
+  ["There are three ___ in this building.",["librarys","libraries","libraryes"],1],
+  ["The ___ are on the table.",["knifes","knives","knife's"],1],
+  ["I saw five ___ in the field.",["sheeps","sheep","sheepes"],1]],
+ errors:[
+  ["I have two childs.",false,"I have two children."],
+  ["She bought three boxs of chocolates.",false,"She bought three boxes of chocolates."],
+  ["The leafs are falling.",false,"The leaves are falling."],
+  ["There are five womans in the room.",false,"There are five women in the room."],
+  ["I saw three deer in the field.",true,""],
+  ["He has two teeth that hurt.",true,""]]},
+
+{code:'L15',title:'Adverbs of Frequency',tag:'always / never / usually',
+ fill:[
+  ["I ___ go to bed late.","always"],["She is ___ on time.","never"],
+  ["They ___ eat out.","rarely"],["He is ___ tired on Mondays.","often"],
+  ["We ___ have pizza on Fridays.","usually"],["I ___ check my phone.","constantly"]],
+ mcq:[
+  ["She ___ eats meat — she's vegetarian.",["always","never","often"],1],
+  ["He is ___ late — he's very punctual.",["never","always","usually"],0],
+  ["I ___ go to the gym — about 3 times a week.",["never","rarely","often"],2],
+  ["'How ___ do you visit your parents?'",["much","many","often"],2],
+  ["They ___ eat out on Fridays.",["usually","never","not"],0],
+  ["She ___ is in a bad mood — she's always cheerful.",["always","often","rarely"],2]],
+ errors:[
+  ["I go always to bed at 10pm.",false,"I always go to bed at 10pm."],
+  ["She never is late.",false,"She is never late."],
+  ["He often goes usually to the gym.",false,"He often goes to the gym."],
+  ["They eat rarely meat.",false,"They rarely eat meat."],
+  ["How often do you go swimming?",true,""],
+  ["We are usually bored in meetings.",true,""]]},
+
+{code:'L16',title:'Telling the Time',tag:"o'clock / past / to",
+ fill:[
+  ["It's ___ past seven. (7:30)","half"],["It's ___ to nine. (8:45)","quarter"],
+  ["It's ten ___ two. (2:10)","past"],["It's three ___. (3:00)","o'clock"],
+  ["It's ___ past one. (1:15)","quarter"],["It's five ___ midnight. (11:55)","to"]],
+ mcq:[
+  ["It's 4:30. We say:",["half to four","half past four","four and half"],1],
+  ["It's 6:45. We say:",["quarter past seven","quarter past six","quarter to seven"],2],
+  ["It's 10:15. We say:",["quarter past ten","quarter to ten","half past ten"],0],
+  ["We use 'o'clock' when:",["the time is exact","it is quarter past","it is half past"],0],
+  ["'What time is it?' — '___ midnight.'",["It's","Is","Its"],0],
+  ["'12:00 at night' is called:",["noon","midday","midnight"],2]],
+ errors:[
+  ["It's half to six.",false,"It's half past six."],
+  ["It's quarter past to five.",false,"It's quarter past five."],
+  ["It's five past to midnight.",false,"It's five to midnight."],
+  ["It's the 9:30.",false,"It's 9:30."],
+  ["What time is it? It's 3 o'clock.",true,""],
+  ["The meeting is at 10 o'clock in the morning.",true,""]]},
+
+{code:'L17',title:"Can / Can't",tag:'ability & permission',
+ fill:[
+  ["She ___ play the piano. She's excellent!","can"],["I ___ drive. I don't have a licence.","can't"],
+  ["___ you help me with this, please?","Can"],["He ___ speak Spanish — not a single word.","can't"],
+  ["They ___ come to the party tomorrow.","can"],["___ birds fly? — Most of them can!","Can"]],
+ mcq:[
+  ["___ you speak English?",["Do","Can","Are"],1],
+  ["She ___ play the guitar very well.",["cans","can","could to"],1],
+  ["I'm sorry, I ___ come tonight.",["can't","don't can","not can"],0],
+  ["Can they swim? — Yes, ___.",["they do","they can","they are"],1],
+  ["___ I borrow your pen?",["Do","Am","Can"],2],
+  ["He ___ drive — he's only 15.",["doesn't can","can't","cannot to"],1]],
+ errors:[
+  ["She cans speak French.",false,"She can speak French."],
+  ["I can to swim very fast.",false,"I can swim very fast."],
+  ["Can he swims?",false,"Can he swim?"],
+  ["They cannot to drive.",false,"They cannot drive."],
+  ["Can I open the window?",true,""],
+  ["Yes, she can.",true,""]]},
+
+{code:'L18',title:'Past of TO BE',tag:'was / were',
+ fill:[
+  ["The film ___ really good.","was"],["We ___ at the beach yesterday.","were"],
+  ["She ___ not feeling well this morning.","was"],["I ___ born in 2001.","was"],
+  ["They ___ late for the meeting.","were"],["The weather ___ sunny last weekend.","was"]],
+ mcq:[
+  ["He ___ at work yesterday.",["were","was","is"],1],
+  ["___ you tired last night?",["Was","Were","Are"],1],
+  ["They ___ not at the party.",["was","were","is"],1],
+  ["Was the film good? — No, it ___.",["wasn't","weren't","isn't"],0],
+  ["I ___ born in a small town.",["were","am","was"],2],
+  ["___ they happy with the result?",["Was","Were","Are"],1]],
+ errors:[
+  ["She were a teacher in 2010.",false,"She was a teacher in 2010."],
+  ["Were I right about that?",false,"Was I right about that?"],
+  ["They wasn't at school yesterday.",false,"They weren't at school yesterday."],
+  ["Was you at the cinema?",false,"Were you at the cinema?"],
+  ["He was very excited about the news.",true,""],
+  ["Yes, she was.",true,""]]}
+];
+
+/* ============================= STATE ============================= */
+let progress = {}; // { L01: {best:6,total:6}, ... }
+let totalScore = 0;
+let streak = 0;
+
+let curLessonIdx = 0, curMode = null, curQ = 0, curScore = 0, curAnswered = false, curItems = [];
+
+const $ = id => document.getElementById(id);
+
+/* ---------- persistence ---------- */
+async function loadProgress(){
+  try{
+    const res = await window.storage.get('progress-all', false);
+    if(res && res.value){ progress = JSON.parse(res.value); }
+  }catch(e){ progress = {}; }
+  recomputeTotals();
+  renderHome();
+}
+async function saveProgress(){
+  try{ await window.storage.set('progress-all', JSON.stringify(progress), false); }catch(e){}
+}
+function recomputeTotals(){
+  totalScore = 0;
+  let cleared = 0;
+  LESSONS.forEach(l=>{
+    const p = progress[l.code];
+    if(p && p.best){ totalScore += p.best; }
+    if(p && p.best === p.total && p.total>0){ cleared++; }
+  });
+  $('statScore').textContent = totalScore;
+  $('statCleared').textContent = cleared+'/18';
+  $('totalBadge').textContent = 'TOTAL SCORE: '+totalScore;
+}
+
+/* ============================= HOME RENDER ============================= */
+function renderHome(){
+  const grid = $('cartGrid');
+  grid.innerHTML = '';
+  LESSONS.forEach((l,i)=>{
+    const color = COLORS[i % COLORS.length];
+    const p = progress[l.code];
+    const pct = p && p.total ? Math.round((p.best/p.total)*100) : 0;
+    const card = document.createElement('button');
+    card.className = 'cart';
+    card.innerHTML = `
+      <div class="cart-notch"></div>
+      <div class="cart-top" style="background:${color}"></div>
+      <div class="cart-body">
+        <span class="cart-code" style="background:${color}">${l.code}</span>
+        <div class="cart-title">${l.title}</div>
+        <div class="cart-tag">${l.tag}</div>
+        <div class="cart-progress"><i style="width:${pct}%;background:${color}"></i></div>
+      </div>`;
+    card.addEventListener('click', ()=>openLesson(i));
+    grid.appendChild(card);
+  });
+}
+
+/* ============================= LESSON / MODE PICKER ============================= */
+function openLesson(i){
+  curLessonIdx = i;
+  const l = LESSONS[i];
+  $('home').style.display = 'none';
+  $('gameStage').style.display = 'block';
+  $('hudLesson').textContent = l.code+' · '+l.title.toUpperCase();
+  showModePicker();
+}
+
+function showModePicker(){
+  $('modePickerView').style.display = 'block';
+  $('playView').style.display = 'none';
+  $('endView').style.display = 'none';
+  $('hudMode').textContent = 'SELECT MODE';
+  const l = LESSONS[curLessonIdx];
+  const picker = $('modePicker');
+  picker.innerHTML = '';
+  const modes = [
+    {key:'fill', label:'Fill the Gap', sub:'Type the answer', color:'var(--amber)', data:l.fill},
+    {key:'mcq', label:'Multiple Choice', sub:'Pick the option', color:'var(--sky)', data:l.mcq},
+    {key:'errors', label:'Error Hunt', sub:'Correct or wrong?', color:'var(--coral)', data:l.errors},
+  ];
+  modes.forEach(m=>{
+    const btn = document.createElement('div');
+    const locked = !m.data;
+    btn.className = 'mode-btn'+(locked?' locked':'');
+    btn.innerHTML = `<div class="dot-lamp" style="background:${m.color}"></div>
+      <div class="m-title">${m.label}</div>
+      <div class="m-sub">${locked ? 'Not available' : m.sub+' · '+m.data.length+' rounds'}</div>`;
+    if(!locked){ btn.addEventListener('click', ()=>startGame(m.key)); }
+    picker.appendChild(btn);
+  });
+}
+
+/* ============================= GAME LOGIC ============================= */
+function startGame(mode){
+  curMode = mode;
+  const l = LESSONS[curLessonIdx];
+  curItems = l[mode].slice();
+  curQ = 0; curScore = 0; curAnswered = false;
+  $('modePickerView').style.display = 'none';
+  $('endView').style.display = 'none';
+  $('playView').style.display = 'block';
+  $('hudMode').textContent = ({fill:'FILL THE GAP',mcq:'MULTIPLE CHOICE',errors:'ERROR HUNT'})[mode];
+  renderDots();
+  renderQuestion();
+}
+
+function renderDots(){
+  const dots = $('dots');
+  dots.innerHTML = '';
+  curItems.forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot'+(i<curQ?' done':(i===curQ?' current':''));
+    dots.appendChild(d);
+  });
+}
+
+function renderQuestion(){
+  curAnswered = false;
+  $('feedback').textContent = '';
+  $('feedback').className = 'feedback';
+  $('nextBtn').textContent = 'Check answer';
+  $('nextBtn').disabled = (curMode !== 'errors' && curMode !== 'mcq');
+  $('qEyebrow').textContent = 'QUESTION '+(curQ+1)+' OF '+curItems.length;
+  const item = curItems[curQ];
+  const area = $('answerArea');
+
+  if(curMode === 'fill'){
+    const [q] = item;
+    $('qText').innerHTML = q.replace('___','<b>______</b>');
+    area.innerHTML = `<div class="fill-row">
+      <input type="text" class="fill-input" id="fillInput" placeholder="Type your answer..." autocomplete="off">
+    </div>`;
+    const input = $('fillInput');
+    input.focus();
+    input.addEventListener('input', ()=>{ $('nextBtn').disabled = input.value.trim().length===0; });
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter' && !$('nextBtn').disabled) handleNext(); });
+  }
+
+  if(curMode === 'mcq'){
+    const [q, opts] = item;
+    $('qText').textContent = q;
+    area.innerHTML = `<div class="options-grid">` + opts.map((o,idx)=>
+      `<button class="opt-btn" data-idx="${idx}">${o}</button>`).join('') + `</div>`;
+    area.querySelectorAll('.opt-btn').forEach(b=>{
+      b.addEventListener('click', ()=>selectMcq(parseInt(b.dataset.idx)));
+    });
+  }
+
+  if(curMode === 'errors'){
+    const [s] = item;
+    $('qText').textContent = '"'+s+'"';
+    area.innerHTML = `<div class="tf-row">
+      <button class="tf-btn true-btn" data-choice="true">✓ Correct</button>
+      <button class="tf-btn false-btn" data-choice="false">✕ Incorrect</button>
+    </div>`;
+    area.querySelectorAll('.tf-btn').forEach(b=>{
+      b.addEventListener('click', ()=>selectTf(b.dataset.choice === 'true'));
+    });
+  }
+}
+
+function normalize(s){
+  return s.toLowerCase().trim().replace(/[.,!?;:]/g,'').replace(/’/g,"'").replace(/\s+/g,' ');
+}
+
+function evaluateFill(){
+  const input = $('fillInput');
+  const user = normalize(input.value);
+  const [,answer] = curItems[curQ];
+  const correct = user === normalize(answer) || user.replace(/'/g,'') === normalize(answer).replace(/'/g,'');
+  input.disabled = true;
+  finishQuestion(correct, answer);
+}
+
+function selectMcq(idx){
+  if(curAnswered) return;
+  curAnswered = true;
+  const [,opts,answerIdx] = curItems[curQ];
+  const buttons = document.querySelectorAll('.opt-btn');
+  buttons.forEach(b=>b.disabled = true);
+  buttons[answerIdx].classList.add('correct');
+  if(idx !== answerIdx){ buttons[idx].classList.add('wrong'); }
+  finishQuestion(idx === answerIdx, opts[answerIdx]);
+  $('nextBtn').disabled = false;
+}
+
+function selectTf(choice){
+  if(curAnswered) return;
+  curAnswered = true;
+  const [,isCorrectSentence,fix] = curItems[curQ];
+  const buttons = document.querySelectorAll('.tf-btn');
+  buttons.forEach(b=>b.disabled = true);
+  const rightBtn = isCorrectSentence ? buttons[0] : buttons[1];
+  rightBtn.classList.add('correct');
+  if(choice !== isCorrectSentence){
+    (isCorrectSentence ? buttons[1] : buttons[0]).classList.add('wrong');
+  }
+  finishQuestion(choice === isCorrectSentence, fix || (isCorrectSentence ? 'This sentence is already correct.' : ''));
+  $('nextBtn').disabled = false;
+}
+
+function finishQuestion(correct, correction){
+  curAnswered = true;
+  const fb = $('feedback');
+  const screen = $('screen');
+  if(correct){
+    curScore++; streak++;
+    $('statStreak').textContent = streak;
+    fb.className = 'feedback good';
+    fb.textContent = '✓ Correct! Nice work.';
+    screen.classList.add('screen-flash');
+    setTimeout(()=>screen.classList.remove('screen-flash'),400);
+  } else {
+    streak = 0;
+    $('statStreak').textContent = streak;
+    fb.className = 'feedback bad';
+    fb.textContent = correction ? ('✕ Not quite. Correct: '+correction) : '✕ Not quite.';
+    screen.classList.add('screen-glitch');
+    setTimeout(()=>screen.classList.remove('screen-glitch'),300);
+  }
+  $('nextBtn').textContent = (curQ === curItems.length-1) ? 'Finish' : 'Next question →';
+  $('nextBtn').disabled = false;
+}
+
+function handleNext(){
+  if(!curAnswered){
+    if(curMode === 'fill'){ evaluateFill(); return; }
+    return; // mcq / errors require a click on an option first
+  }
+  curQ++;
+  if(curQ >= curItems.length){ endGame(); return; }
+  renderDots();
+  renderQuestion();
+}
+
+function endGame(){
+  $('playView').style.display = 'none';
+  $('endView').style.display = 'block';
+  $('hudMode').textContent = 'RESULTS';
+  const l = LESSONS[curLessonIdx];
+  const total = curItems.length;
+  $('endScore').textContent = curScore+' / '+total;
+  const pct = Math.round((curScore/total)*100);
+  let medal = '🥉', msg = "Keep practicing — you'll get there.";
+  if(pct === 100){ medal='🏆'; msg = 'Perfect round! Cartridge mastered.'; }
+  else if(pct >= 80){ medal='🥇'; msg = 'Excellent! Almost perfect.'; }
+  else if(pct >= 50){ medal='🥈'; msg = 'Good effort — review and try again.'; }
+  $('medal').textContent = medal;
+  $('endMsg').textContent = msg;
+
+  const key = l.code;
+  const prev = progress[key] || {best:0,total:total};
+  progress[key] = {best: Math.max(prev.best||0, curScore), total: total};
+  saveProgress();
+  recomputeTotals();
+}
+
+/* ============================= NAV ============================= */
+$('nextBtn').addEventListener('click', handleNext);
+$('backBtn').addEventListener('click', ()=>{ showModePicker(); });
+$('endBackBtn').addEventListener('click', ()=>{
+  $('gameStage').style.display = 'none';
+  $('home').style.display = 'block';
+  renderHome();
+});
+$('retryBtn').addEventListener('click', ()=>startGame(curMode));
+
+loadProgress();
+</script>
+</body>
+</html>
